@@ -1,5 +1,6 @@
 import { fetchUtils } from 'react-admin';
 import { stringify } from 'query-string';
+import convertAPIData from '../utils/convert-api-data';
 
 const apiUrl = 'https://comments-microservice.herokuapp.com/v1';
 const httpClient = (url, options = {}) => {
@@ -11,66 +12,63 @@ const httpClient = (url, options = {}) => {
   return fetchUtils.fetchJson(url, options);
 };
 
-const convertOne = data => ({ ...data, id: data.msAdminId });
-const convertMany = data => data.map(item => ({ ...item, id: item.msAdminId }));
-
 export default {
-  getList: (resource, params) => {
-    const url = `${apiUrl}/${resource}`;
-
-    return httpClient(url).then(({ json }) => ({
-      data: convertMany(json.data),
-      total: json.data.length,
-    }));
-  },
+  getList: (resource, params) =>
+    httpClient(`${apiUrl}/${resource}`)
+      .then(({ json }) => ({
+        data: convertAPIData(json.data),
+        total: json.data.length,
+      })),
 
   getOne: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}/${params.id}`).then(({ json }) => ({
-      data: convertOne(json.data),
-    })),
+    httpClient(`${apiUrl}/${resource}/${params.id}`)
+      .then(({ json }) => ({
+        data: convertAPIData(json.data),
+      })),
 
-  getMany: (resource, params) => {
-    const url = `${apiUrl}/${resource}`;
-    return httpClient(url).then(({ json }) => ({ data: convertMany(json.data) }));
+  getMany: (resource, params) =>
+    httpClient(`${apiUrl}/${resource}`)
+      .then(({ json }) => ({
+        data: convertAPIData(json.data)
+      })),
+
+  getManyReference: (resource, params) =>
+    httpClient(`${apiUrl}/${resource}`)
+      .then(({ json }) => ({
+        data: convertAPIData(json.data),
+        total: json.data.length,
+      })),
+
+  update: (resource, params) => {
+    const token = localStorage.getItem('systemToken');
+    console.log(params);
+    if (token === params.id || token === params.msAdminId) {
+      return httpClient(`${apiUrl}/${resource}`, {
+        method: 'PATCH',
+        body: JSON.stringify(params.data),
+      }).then(({ json }) => ({
+        data: convertAPIData(json.data)
+      }));
+    }
+    return Promise.reject();
   },
 
-  getManyReference: (resource, params) => {
-    const url = `${apiUrl}/${resource}`;
-
-    return httpClient(url).then(({ json }) => ({
-      data: convertMany(json.data),
-      total: json.data.length,
-    }));
-  },
-
-  update: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}`, {
-      method: 'PATCH',
-      body: JSON.stringify(params.data),
-    }).then(({ json }) => ({ data: convertOne(json.data) })),
-
-  updateMany: (resource, params) => {
-    const query = {
-      filter: JSON.stringify({ id: params.ids }),
-    };
-    return httpClient(`${apiUrl}/${resource}?${stringify(query)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(params.data),
-    }).then(({ json }) => ({ data: convertMany(json.data) }));
-  },
+  updateMany: (resource, params) => null,
 
   create: (resource, params) =>
-    httpClient(`${apiUrl}/${resource}`, {
+    httpClient(`${apiUrl}/${resource}/create`, {
       method: 'POST',
       body: JSON.stringify(params.data),
     }).then(({ json }) => ({
-      data: convertOne(json.data),
+      data: convertAPIData(json.data),
     })),
 
   delete: (resource, params) =>
     httpClient(`${apiUrl}/${resource}/${params.id}`, {
       method: 'DELETE',
-    }).then(({ json }) => ({ data: convertMany(json.data) })),
+    }).then(({ json }) => ({
+      data: convertAPIData(json.data)
+    })),
 
   deleteMany: (resource, params) => {
     const query = {
@@ -79,6 +77,8 @@ export default {
     return httpClient(`${apiUrl}/${resource}?${stringify(query)}`, {
       method: 'DELETE',
       body: JSON.stringify(params.data),
-    }).then(({ json }) => ({ data: convertMany(json.data) }));
+    }).then(({ json }) => ({
+      data: convertAPIData(json.data)
+    }));
   }
 };

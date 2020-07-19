@@ -1,10 +1,10 @@
 import React from 'react';
 import { Admin, Resource } from 'react-admin';
-import Dashboard from './Dashboard';
-import authProvider from '../services/authProvider';
-import adminProvider from '../services/adminProvider';
+import Dashboard from './components/dashboard/Dashboard';
+import authProvider from './services/authProvider';
+import adminProvider from './services/adminProvider';
 import UserIcon from '@material-ui/icons/Group';
-import { AdminList, AdminEdit, AdminCreate } from './Admins';
+import { AdminList, AdminEdit, AdminCreate } from './components/admin/Admins';
 
 function App() {
   return (

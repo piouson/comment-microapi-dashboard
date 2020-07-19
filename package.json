@@ -7,8 +7,6 @@
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
     "prop-types": "^15.7.2",
-    "ra-data-json-server": "^3.7.1",
-    "ra-data-simple-rest": "^3.7.1",
     "react": "^16.13.1",
     "react-admin": "^3.7.1",
     "react-dom": "^16.13.1",
